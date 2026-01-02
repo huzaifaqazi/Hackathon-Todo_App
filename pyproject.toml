@@ -1,0 +1,19 @@
+[project]
+name = "todo-app"
+version = "0.1.0"
+description = "A console-based todo application with in-memory storage"
+authors = [{name = "Developer", email = "dev@example.com"}]
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+todo = "main:main"
+
+[tool.uv]
+package = true
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0.0"
+]
