@@ -212,6 +212,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 ## Active Technologies
 - Python 3.13+ + UV for environment management, built-in Python libraries only (001-todo-console-app)
 - In-memory only (no persistent storage, Python data structures) (001-todo-console-app)
+- Python 3.11+ for backend, JavaScript/TypeScript for frontend + Python FastAPI with SQLModel ORM, Next.js 16+ with App Router and Tailwind CSS, Better Auth for authentication (001-todo-fullstack)
+- Neon Serverless PostgreSQL for persistent storage (001-todo-fullstack)
 
 ## Recent Changes
 - 001-todo-console-app: Added Python 3.13+ + UV for environment management, built-in Python libraries only
