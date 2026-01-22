@@ -1,0 +1,238 @@
+openapi: 3.0.0
+info:
+  title: Task Management API
+  version: 1.0.0
+  description: API for managing user tasks with full CRUD operations
+
+paths:
+  /api/v1/tasks:
+    get:
+      summary: List user tasks
+      description: Retrieve a list of tasks belonging to the authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved user tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '403':
+          description: Forbidden - User not authorized to access these resources
+
+  /api/v1/tasks/{id}:
+    get:
+      summary: Get task by ID
+      description: Retrieve a specific task by its ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Task ID
+      responses:
+        '200':
+          description: Successfully retrieved the task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '403':
+          description: Forbidden - User not authorized to access this task
+        '404':
+          description: Task not found
+    put:
+      summary: Update task
+      description: Update a specific task by its ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Task ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdateRequest'
+      responses:
+        '200':
+          description: Successfully updated the task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Bad request - Invalid input data
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '403':
+          description: Forbidden - User not authorized to update this task
+        '404':
+          description: Task not found
+    patch:
+      summary: Partially update task
+      description: Partially update a specific task by its ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Task ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskPartialUpdateRequest'
+      responses:
+        '200':
+          description: Successfully updated the task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Bad request - Invalid input data
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '403':
+          description: Forbidden - User not authorized to update this task
+        '404':
+          description: Task not found
+    delete:
+      summary: Delete task
+      description: Delete a specific task by its ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Task ID
+      responses:
+        '204':
+          description: Successfully deleted the task
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '403':
+          description: Forbidden - User not authorized to delete this task
+        '404':
+          description: Task not found
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - user_id
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the task
+          example: 1
+        title:
+          type: string
+          description: Task title
+          example: "Buy groceries"
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          description: Task description
+          example: "Milk, bread, eggs, fruits"
+          maxLength: 1000
+        status:
+          type: string
+          description: Task status
+          enum: [pending, in-progress, completed]
+          default: pending
+          example: "pending"
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when task was created
+          example: "2026-01-21T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when task was last updated
+          example: "2026-01-21T10:00:00Z"
+        user_id:
+          type: integer
+          description: ID of the user who owns this task
+          example: 1
+
+    TaskUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Updated task title
+          example: "Buy groceries"
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          description: Updated task description
+          example: "Milk, bread, eggs, fruits"
+          maxLength: 1000
+        status:
+          type: string
+          description: Updated task status
+          enum: [pending, in-progress, completed]
+          example: "in-progress"
+      required:
+        - title
+
+    TaskPartialUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Updated task title
+          example: "Buy groceries"
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          description: Updated task description
+          example: "Milk, bread, eggs, fruits"
+          maxLength: 1000
+        status:
+          type: string
+          description: Updated task status
+          enum: [pending, in-progress, completed]
+          example: "in-progress"
