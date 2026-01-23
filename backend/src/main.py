@@ -31,14 +31,21 @@ app = FastAPI(
 )
 
 # Configure CORS
+allowed_origins = [
+    "http://localhost:3000",  # Next.js default port
+    "http://localhost:3001",  # Alternative Next.js port
+    "http://127.0.0.1:3000",  # Alternative localhost
+    "http://127.0.0.1:3001",  # Alternative localhost
+]
+
+# Add production origins from environment variable
+production_origins = os.getenv("ALLOWED_ORIGINS", "")
+if production_origins:
+    allowed_origins.extend(production_origins.split(","))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Next.js default port
-        "http://localhost:3001",  # Alternative Next.js port
-        "http://127.0.0.1:3000",  # Alternative localhost
-        "http://127.0.0.1:3001",  # Alternative localhost
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

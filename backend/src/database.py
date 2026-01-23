@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Get database URL from environment
-# Use PostgreSQL for Neon database (required)
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://username:password@ep-your-endpoint.region.aws.neon.tech/neondb?sslmode=require")
+# Check for Railway DATABASE_URL first, then Neon, then fallback
+DATABASE_URL = os.getenv("DATABASE_URL", os.getenv("NEON_DATABASE_URL", "postgresql://username:password@ep-your-endpoint.region.aws.neon.tech/neondb?sslmode=require"))
 
 # Create the engine
 engine = create_engine(DATABASE_URL, echo=True)
