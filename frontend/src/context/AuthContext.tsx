@@ -15,7 +15,7 @@ interface AuthContextType {
     last_name?: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
-  getCurrentUser: () => Promise<void>;
+  getCurrentUser: () => Promise<User>;
 }
 
 // Create the context
