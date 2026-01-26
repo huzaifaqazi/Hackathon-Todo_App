@@ -61,13 +61,13 @@ export const taskApi = {
     limit?: number;
     offset?: number;
   }) => {
-    const response = await apiClient.get('/api/v1/tasks', { params });
+    const response = await apiClient.get('/api/v1/tasks/', { params });
     return response.data;
   },
 
   // Create a new task
   createTask: async (taskData: Partial<Task>) => {
-    const response = await apiClient.post('/api/v1/tasks', taskData);
+    const response = await apiClient.post('/api/v1/tasks/', taskData);
     return response.data;
   },
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
-import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 
 interface FormData {
   email: string;
@@ -10,6 +10,7 @@ interface FormData {
 }
 
 const RegisterForm: React.FC = () => {
+  const { register } = useAuth(); // Get register function from auth context
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
@@ -35,17 +36,19 @@ const RegisterForm: React.FC = () => {
     setError(null);
 
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/register`, formData);
+      // Use the auth context register function instead of direct API call
+      await register({
+        email: formData.email,
+        password: formData.password,
+        first_name: formData.first_name,
+        last_name: formData.last_name
+      });
 
-      if (response.data.success) {
-        // Redirect to login page after successful registration
-        router.push('/login');
-      } else {
-        setError(response.data.message || 'Registration failed');
-      }
+      // Redirect to login page after successful registration
+      router.push('/login');
     } catch (err: any) {
       console.error('Registration error:', err);
-      setError(err.response?.data?.detail || 'An error occurred during registration');
+      setError(err.message || 'An error occurred during registration');
     } finally {
       setLoading(false);
     }
