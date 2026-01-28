@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import TaskCard from '../components/task/TaskCard';
-import TaskForm from '../components/task/TaskForm';
-import TaskList from '../components/task/TaskList';
+import { TaskCard } from '../../tasks/task-card';
+import { TaskForm } from '../../tasks/task-form';
+import { TaskList } from '../../tasks/task-list';
 
 // Mock the API functions
 jest.mock('../services/api', () => ({
@@ -19,8 +19,8 @@ describe('TaskCard Component', () => {
     id: '1',
     title: 'Test Task',
     description: 'Test Description',
-    status: 'pending',
-    priority: 'medium',
+    status: 'pending' as const,
+    priority: 'medium' as const,
     created_at: '2023-01-01T00:00:00Z',
     updated_at: '2023-01-01T00:00:00Z',
     user_id: 'user1'
@@ -59,7 +59,7 @@ describe('TaskCard Component', () => {
     render(<TaskCard task={mockTask} onDelete={jest.fn()} deletingId={mockTask.id} />);
 
     expect(screen.getByText('Deleting...')).toBeInTheDocument();
-    expect(screen.getByRole('button', { disabled: true })).toBeInTheDocument();
+    expect(screen.getByRole('button')).toBeDisabled();
   });
 });
 
@@ -132,8 +132,8 @@ describe('TaskList Component', () => {
       id: '1',
       title: 'Task 1',
       description: 'Description 1',
-      status: 'pending',
-      priority: 'low',
+      status: 'pending' as const,
+      priority: 'low' as const,
       created_at: '2023-01-01T00:00:00Z',
       updated_at: '2023-01-01T00:00:00Z',
       user_id: 'user1'
@@ -142,8 +142,8 @@ describe('TaskList Component', () => {
       id: '2',
       title: 'Task 2',
       description: 'Description 2',
-      status: 'completed',
-      priority: 'high',
+      status: 'completed' as const,
+      priority: 'high' as const,
       created_at: '2023-01-01T00:00:00Z',
       updated_at: '2023-01-01T00:00:00Z',
       user_id: 'user1'

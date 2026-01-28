@@ -2,10 +2,17 @@ import React, { useState, useCallback } from 'react';
 import ProtectedRoute from '../components/layout/ProtectedRoute';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import TaskForm from '../components/task/TaskForm';
-import TaskList from '../components/task/TaskList';
+import { TaskList } from '../components/tasks/task-list';
+import { TaskCard } from '../components/tasks/task-card';
 import { Task } from '../types/task';
 import { taskApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Input } from '../components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../components/ui/select';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
+import { Search, Plus, Calendar, TrendingUp, CheckCircle2 } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
   const [showTaskForm, setShowTaskForm] = useState(false);
@@ -174,203 +181,252 @@ const DashboardPage: React.FC = () => {
   return (
     <ProtectedRoute>
       <DashboardLayout>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold text-gray-900">Task Dashboard</h1>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="px-4 py-5 sm:p-6">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-blue-500 rounded-md p-3">
-                      <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">Total Tasks</dt>
-                        <dd className="flex items-baseline">
-                          <div className="text-2xl font-semibold text-gray-900">{tasks.length}</div>
-                        </dd>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="px-4 py-5 sm:p-6">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-yellow-500 rounded-md p-3">
-                      <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">Pending Tasks</dt>
-                        <dd className="flex items-baseline">
-                          <div className="text-2xl font-semibold text-gray-900">{tasks.filter(t => t.status === 'pending').length}</div>
-                        </dd>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white overflow-hidden shadow rounded-lg">
-                <div className="px-4 py-5 sm:p-6">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-green-500 rounded-md p-3">
-                      <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 truncate">Completed Tasks</dt>
-                        <dd className="flex items-baseline">
-                          <div className="text-2xl font-semibold text-gray-900">{tasks.filter(t => t.status === 'completed').length}</div>
-                        </dd>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-8">
-              {showTaskForm ? (
-                <div className="mb-8 bg-white p-6 rounded-lg shadow">
-                  <h2 className="text-lg font-medium text-gray-900 mb-4">Add New Task</h2>
-                  <TaskForm task={formData || null} onSave={handleSaveTask} onCancel={handleCancelForm} />
-                </div>
-              ) : (
-                <>
-                  {/* Search and Filter Controls */}
-                  <div className="mb-6 space-y-4">
-                    <div className="flex flex-col md:flex-row gap-4">
-                      {/* Search Input */}
-                      <div className="flex-1">
-                        <input
-                          type="text"
-                          placeholder="Search tasks..."
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-
-                      {/* Status Filter */}
-                      <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="all">All Statuses</option>
-                        <option value="pending">Pending</option>
-                        <option value="in-progress">In Progress</option>
-                        <option value="completed">Completed</option>
-                      </select>
-
-                      {/* Priority Filter */}
-                      <select
-                        value={priorityFilter}
-                        onChange={(e) => setPriorityFilter(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="all">All Priorities</option>
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                      </select>
-
-                      {/* Sort By */}
-                      <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value as any)}
-                        className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="created_at">Sort by Created Date</option>
-                        <option value="due_date">Sort by Due Date</option>
-                        <option value="priority">Sort by Priority</option>
-                        <option value="status">Sort by Status</option>
-                      </select>
-
-                      {/* Sort Order */}
-                      <button
-                        onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                        className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white"
-                      >
-                        {sortOrder === 'asc' ? '↑ Asc' : '↓ Desc'}
-                      </button>
-                    </div>
-
-                    {/* Add Task Button */}
-                    <div className="flex justify-between items-center">
-                      <h2 className="text-lg font-medium text-gray-900">Your Tasks ({filteredTasks.length})</h2>
-                      <button
-                        onClick={() => setShowTaskForm(true)}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      >
-                        Add New Task
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {loading ? (
-                <div className="bg-white shadow overflow-hidden sm:rounded-md p-8 text-center">
-                  Loading tasks...
-                </div>
-              ) : error ? (
-                <div className="bg-white shadow overflow-hidden sm:rounded-md p-8 text-center text-red-500">
-                  {error}
-                </div>
-              ) : filteredTasks.length === 0 ? (
-                <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                  <ul className="divide-y divide-gray-200">
-                    <li>
-                      <div className="px-6 py-4">
-                        <div className="flex items-center justify-between">
-                          <div className="text-sm font-medium text-gray-900">No tasks found</div>
-                          <div className="text-sm text-gray-500">Try changing your search or filter criteria</div>
-                        </div>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-              ) : (
-                <TaskList
-                  tasks={filteredTasks}
-                  onEdit={(task) => {
-                    setFormData(task);
-                    setShowTaskForm(true);
-                  }}
-                  onDelete={handleDeleteTask}
-                  onToggleComplete={async (taskId) => {
-                    try {
-                      const task = tasks.find(t => t.id === taskId);
-                      if (task) {
-                        const newStatus = task.status === 'completed' ? 'pending' : 'completed';
-                        await taskApi.updateTask(taskId, { ...task, status: newStatus });
-                        await fetchTasks(); // Refresh tasks after update
-                      }
-                    } catch (err: any) {
-                      setError(err.message || 'Failed to update task');
-                      console.error('Error updating task:', err);
-                    }
-                  }}
-                  deletingId={deleting}
-                  saving={saving}
-                />
-              )}
-            </div>
+        <div
+          className="min-h-screen w-full"
+          style={{
+            background: 'linear-gradient(135deg, #f7eeee 0%, #e2ead4 100%)' // Light pink to light green gradient
+          }}
+        >
+          {/* Content container */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Page Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Task Dashboard</h1>
+            <p className="text-muted-foreground">Manage and track your tasks efficiently</p>
           </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-blue-100 text-sm font-medium">Total Tasks</p>
+                    <p className="text-3xl font-bold">{tasks.length}</p>
+                  </div>
+                  <div className="bg-white/20 p-3 rounded-lg">
+                    <CheckCircle2 className="h-6 w-6" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-orange-100 text-sm font-medium">Pending Tasks</p>
+                    <p className="text-3xl font-bold">{tasks.filter(t => t.status === 'pending').length}</p>
+                  </div>
+                  <div className="bg-white/20 p-3 rounded-lg">
+                    <Calendar className="h-6 w-6" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-green-100 text-sm font-medium">Completed Tasks</p>
+                    <p className="text-3xl font-bold">{tasks.filter(t => t.status === 'completed').length}</p>
+                  </div>
+                  <div className="bg-white/20 p-3 rounded-lg">
+                    <TrendingUp className="h-6 w-6" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Task Form */}
+          {showTaskForm && (
+            <div className="mb-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Add New Task</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <TaskForm task={formData || null} onSave={handleSaveTask} onCancel={handleCancelForm} />
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Search and Filters */}
+          <Card className="mb-8 bg-white">
+            <CardContent className="p-8">
+              <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
+                <div className="lg:col-span-2">
+                  <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
+                    Search Tasks
+                  </label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="search"
+                      placeholder="Search tasks by title or description..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 py-3 text-base bg-white border border-gray-400 rounded-lg"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="status-select" className="block text-sm font-medium text-gray-700 mb-2">
+                    Status
+                  </label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger id="status-select" className="py-3 text-base cursor-pointer hover:cursor-pointer">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all" className="cursor-pointer">All Statuses</SelectItem>
+                      <SelectItem value="pending" className="cursor-pointer">Pending</SelectItem>
+                      <SelectItem value="in-progress" className="cursor-pointer">In Progress</SelectItem>
+                      <SelectItem value="completed" className="cursor-pointer">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label htmlFor="priority-select" className="block text-sm font-medium text-gray-700 mb-2">
+                    Priority
+                  </label>
+                  <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                    <SelectTrigger id="priority-select" className="py-3 text-base cursor-pointer hover:cursor-pointer">
+                      <SelectValue placeholder="Priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all" className="cursor-pointer">All Priorities</SelectItem>
+                      <SelectItem value="low" className="cursor-pointer">Low</SelectItem>
+                      <SelectItem value="medium" className="cursor-pointer">Medium</SelectItem>
+                      <SelectItem value="high" className="cursor-pointer">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label htmlFor="sort-select" className="block text-sm font-medium text-gray-700 mb-2">
+                    Sort By
+                  </label>
+                  <Select value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
+                    <SelectTrigger id="sort-select" className="py-3 text-base cursor-pointer hover:cursor-pointer">
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="created_at" className="cursor-pointer">Created Date</SelectItem>
+                      <SelectItem value="due_date" className="cursor-pointer">Due Date</SelectItem>
+                      <SelectItem value="priority" className="cursor-pointer">Priority</SelectItem>
+                      <SelectItem value="status" className="cursor-pointer">Status</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Order
+                  </label>
+                  <Button
+                    variant="outline-blue"
+                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                    className="w-full py-3 text-base"
+                  >
+                    {sortOrder === 'asc' ? '↑ Ascending' : '↓ Descending'}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-8 space-y-4 sm:space-y-0">
+                <h2 className="text-xl font-bold text-gray-900">
+                  Your Tasks <span className="text-gray-500 font-normal">({filteredTasks.length})</span>
+                </h2>
+                <Button
+                  variant="primary"
+                  onClick={() => setShowTaskForm(true)}
+                  className="py-3 px-6 text-base font-semibold"
+                >
+                  <Plus className="mr-2 h-5 w-5" />
+                  Add New Task
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Task List */}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            </div>
+          ) : error ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <p className="text-red-500">{error}</p>
+              </CardContent>
+            </Card>
+          ) : filteredTasks.length === 0 ? (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <div className="mx-auto h-12 w-12 text-gray-400">
+                  <svg
+                    className="h-full w-full"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    ></path>
+                  </svg>
+                </div>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No tasks</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Get started by creating a new task.
+                </p>
+                <div className="mt-6">
+                  <Button variant="primary" onClick={() => setShowTaskForm(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Task
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              <TaskList
+                tasks={filteredTasks}
+                onEdit={(task) => {
+                  setFormData(task);
+                  setShowTaskForm(true);
+                }}
+                onDelete={handleDeleteTask}
+                onComplete={async (taskId) => {
+                  try {
+                    const task = tasks.find(t => t.id === taskId);
+                    if (task) {
+                      const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+                      await taskApi.updateTask(taskId, { ...task, status: newStatus });
+                      await fetchTasks(); // Refresh tasks after update
+                    }
+                  } catch (err: any) {
+                    setError(err.message || 'Failed to update task');
+                    console.error('Error updating task:', err);
+                  }
+                }}
+                deletingId={deleting}
+                saving={saving}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Closing divs for the interactive background */}
         </div>
       </DashboardLayout>
     </ProtectedRoute>
