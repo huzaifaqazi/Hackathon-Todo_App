@@ -81,11 +81,12 @@ const TaskForm: React.FC<TaskFormProps> = ({ task, onSave, onCancel }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-8 bg-white/80 p-8 rounded-xl border border-gray-300 backdrop-blur-sm">
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-          Title *
+        <label htmlFor="title" className="block text-base font-semibold text-gray-800 mb-2">
+          Task Title *
         </label>
+        <p className="text-sm text-gray-500 mb-3">Give your task a clear and descriptive title</p>
         <div className="mt-1">
           <input
             type="text"
@@ -93,72 +94,78 @@ const TaskForm: React.FC<TaskFormProps> = ({ task, onSave, onCancel }) => {
             name="title"
             value={formData.title}
             onChange={handleChange}
-            className={`shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md ${errors.title ? 'border-red-500' : ''}`}
+            placeholder="Enter task title..."
+            className={`shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-base border-gray-300 rounded-lg py-3 px-4 transition-all duration-200 ${errors.title ? 'border-red-500' : 'border-gray-300 focus:border-blue-500'}`}
           />
-          {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
+          {errors.title && <p className="mt-2 text-sm text-red-600 font-medium">{errors.title}</p>}
         </div>
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-          Description
+        <label htmlFor="description" className="block text-base font-semibold text-gray-800 mb-2">
+          Task Description
         </label>
+        <p className="text-sm text-gray-500 mb-3">Provide detailed information about the task</p>
         <div className="mt-1">
           <textarea
             id="description"
             name="description"
-            rows={3}
+            rows={4}
             value={formData.description || ''}
             onChange={handleChange}
-            className={`shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md ${errors.description ? 'border-red-500' : ''}`}
+            placeholder="Describe the task details..."
+            className={`shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-base border-gray-300 rounded-lg py-3 px-4 transition-all duration-200 ${errors.description ? 'border-red-500' : 'border-gray-300 focus:border-blue-500'}`}
           />
-          {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+          {errors.description && <p className="mt-2 text-sm text-red-600 font-medium">{errors.description}</p>}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-y-8 gap-x-6 sm:grid-cols-2">
         <div>
-          <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="status" className="block text-base font-semibold text-gray-800 mb-2">
             Status
           </label>
+          <p className="text-sm text-gray-500 mb-3">Set the current status of the task</p>
           <div className="mt-1">
             <select
               id="status"
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-base border-gray-300 rounded-lg py-3 px-4 transition-all duration-200 cursor-pointer hover:cursor-pointer"
             >
-              <option value="pending">Pending</option>
-              <option value="in-progress">In Progress</option>
-              <option value="completed">Completed</option>
+              <option value="pending" className="cursor-pointer">Pending</option>
+              <option value="in-progress" className="cursor-pointer">In Progress</option>
+              <option value="completed" className="cursor-pointer">Completed</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label htmlFor="priority" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="priority" className="block text-base font-semibold text-gray-800 mb-2">
             Priority
           </label>
+          <p className="text-sm text-gray-500 mb-3">Indicate the importance of the task</p>
           <div className="mt-1">
             <select
               id="priority"
               name="priority"
               value={formData.priority}
               onChange={handleChange}
-              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-base border-gray-300 rounded-lg py-3 px-4 transition-all duration-200 cursor-pointer hover:cursor-pointer"
             >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
+              <option value="low" className="cursor-pointer">Low</option>
+              <option value="medium" className="cursor-pointer">Medium</option>
+              <option value="high" className="cursor-pointer">High</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label htmlFor="due_date" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="due_date" className="block text-base font-semibold text-gray-800 mb-2">
             Due Date
           </label>
+          <p className="text-sm text-gray-500 mb-3">Set the deadline for the task</p>
           <div className="mt-1">
             <input
               type="date"
@@ -166,7 +173,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ task, onSave, onCancel }) => {
               name="due_date"
               value={formData.due_date}
               onChange={handleChange}
-              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-base border-gray-300 rounded-lg py-3 px-4 transition-all duration-200 cursor-pointer"
             />
           </div>
         </div>

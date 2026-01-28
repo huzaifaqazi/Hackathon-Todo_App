@@ -214,6 +214,9 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - In-memory only (no persistent storage, Python data structures) (001-todo-console-app)
 - Python 3.11+ for backend, JavaScript/TypeScript for frontend + Python FastAPI with SQLModel ORM, Next.js 16+ with App Router and Tailwind CSS, Better Auth for authentication (001-todo-fullstack)
 - Neon Serverless PostgreSQL for persistent storage (001-todo-fullstack)
+- TypeScript/JavaScript for frontend, Python 3.11+ for backend + Next.js 16+, Tailwind CSS, FastAPI, Better Auth, PostgreSQL (004-ui-design)
+- TypeScript/JavaScript for frontend, Python 3.11+ for backend + Next.js 16+, Tailwind CSS, Better Auth, React (001-ui-design)
+- Neon Serverless PostgreSQL (existing backend unchanged) (001-ui-design)
 
 ## Recent Changes
 - 001-todo-console-app: Added Python 3.13+ + UV for environment management, built-in Python libraries only
