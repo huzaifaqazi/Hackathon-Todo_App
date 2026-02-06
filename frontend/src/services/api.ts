@@ -3,7 +3,7 @@ import { Task } from '../types/task';
 
 // Create an axios instance with base configuration
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://hackathon-todoapp-production.up.railway.app',
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
   timeout: 10000, // 10 seconds timeout
   headers: {
     'Content-Type': 'application/json',

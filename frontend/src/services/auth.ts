@@ -38,7 +38,7 @@ class AuthService {
   private apiUrl: string;
 
   constructor() {
-    this.apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://hackathon-todoapp-production.up.railway.app';
+    this.apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
   }
 
   async login(email: string, password: string): Promise<LoginResponse> {
