@@ -440,7 +440,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ userId }) => {
                 </button>
                 <h1 className="text-xl font-semibold text-gray-800">AI Chatbot</h1>
               </div>
-              <div className="text-sm text-gray-600">Welcome, {user?.name?.toUpperCase() || user?.email?.split('@')[0]?.toUpperCase()}</div>
+              <div className="text-sm text-gray-600">Welcome, {user?.email?.split('@')[0]?.toUpperCase() || 'User'}</div>
             </div>
 
             {/* Messages container */}
