@@ -41,10 +41,14 @@ apiClient.interceptors.response.use(
     // Handle specific error cases
     if (error.response?.status === 401) {
       // Token might be expired, remove invalid token
-      localStorage.removeItem('access_token');
-      // Redirect to login page
+      if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+        localStorage.removeItem('access_token');
+      }
+      // Redirect to login page only if we're in the browser
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        // Use router.replace instead of direct window.location for better Next.js handling
+        // But since we don't have router here, we'll use location.replace
+        window.location.replace('/login');
       }
     }
 
