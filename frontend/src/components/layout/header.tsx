@@ -32,6 +32,9 @@ const Header = () => {
               <Link href="/dashboard" className="transition-colors hover:text-foreground/80 text-foreground">
                 Dashboard
               </Link>
+              <Link href="/chat" className="transition-colors hover:text-foreground/80 text-muted-foreground">
+                AI Chat
+              </Link>
               <Link href="/dashboard" className="transition-colors hover:text-foreground/80 text-muted-foreground">
                 Tasks
               </Link>

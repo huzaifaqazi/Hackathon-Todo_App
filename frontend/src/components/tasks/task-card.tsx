@@ -5,6 +5,7 @@ import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Task } from "../../types/task"; // Assuming this is the correct path
 import { Edit3, Trash2, Calendar, Flag, CircleCheckBig } from 'lucide-react';
+import { formatDate } from "../../utils/dateUtils";
 
 interface TaskCardProps {
   task: Task;
@@ -26,7 +27,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const isCompleted = task.status === 'completed';
 
   // Format due date if it exists
-  const formattedDueDate = task.due_date ? new Date(task.due_date).toLocaleDateString() : null;
+  const formattedDueDate = task.due_date ? formatDate(task.due_date) : null;
   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && !isCompleted;
 
   return (

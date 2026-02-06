@@ -1,5 +1,6 @@
 import React from 'react';
 import { Task } from '../../types/task';
+import { formatDate } from '../../utils/dateUtils';
 
 interface TaskCardProps {
   task: Task;
@@ -65,8 +66,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onToggleCom
               </span>
             </div>
             {task.due_date && (
-              <div className="mt-2 text-sm text-gray-500" aria-label={`Due date: ${new Date(task.due_date).toLocaleDateString()}`}>
-                Due: {new Date(task.due_date).toLocaleDateString()}
+              <div className="mt-2 text-sm text-gray-500" aria-label={`Due date: ${formatDate(task.due_date)}`}>
+                Due: {formatDate(task.due_date)}
               </div>
             )}
           </div>

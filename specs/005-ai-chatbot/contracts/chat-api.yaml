@@ -1,0 +1,384 @@
+openapi: 3.0.3
+info:
+  title: AI Chatbot API for Todo Application
+  description: API for managing AI-powered chat interactions with todo functionality
+  version: 1.0.0
+servers:
+  - url: https://api.todoapp.com/v1
+    description: Production server
+  - url: http://localhost:8000/v1
+    description: Development server
+
+paths:
+  /chat/conversations:
+    get:
+      summary: List user conversations
+      description: Retrieve a list of conversations for the authenticated user
+      tags:
+        - Conversations
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Conversation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Create new conversation
+      description: Start a new conversation with the AI assistant
+      tags:
+        - Conversations
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                initial_message:
+                  type: string
+                  description: Optional first message to start the conversation
+                  example: "Hi, help me manage my tasks"
+              required:
+                - initial_message
+      responses:
+        '201':
+          description: Conversation created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversation:
+                    $ref: '#/components/schemas/Conversation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /chat/conversations/{conversation_id}:
+    get:
+      summary: Get conversation details
+      description: Retrieve details of a specific conversation including all messages
+      tags:
+        - Conversations
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the conversation to retrieve
+      responses:
+        '200':
+          description: Conversation details with messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversation:
+                    $ref: '#/components/schemas/ConversationWithMessages'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Delete conversation
+      description: Permanently delete a conversation and all its messages
+      tags:
+        - Conversations
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the conversation to delete
+      responses:
+        '204':
+          description: Conversation deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /chat/conversations/{conversation_id}/messages:
+    get:
+      summary: Get conversation messages
+      description: Retrieve all messages in a specific conversation
+      tags:
+        - Messages
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the conversation
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+          description: Maximum number of messages to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of messages to skip
+      responses:
+        '200':
+          description: List of messages in the conversation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+                  total_count:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /chat/conversations/{conversation_id}/chat:
+    post:
+      summary: Send message to AI
+      description: Send a message to the AI assistant and receive a response with potential tool executions
+      tags:
+        - Chat
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  description: User message to send to the AI
+                  example: "Add a new task to buy groceries"
+                stream:
+                  type: boolean
+                  description: Whether to stream the response
+                  default: false
+              required:
+                - message
+      responses:
+        '200':
+          description: AI response with potential tool executions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+components:
+  schemas:
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the conversation
+        user_id:
+          type: string
+          format: uuid
+          description: ID of the user who owns this conversation
+        title:
+          type: string
+          description: Auto-generated title based on conversation topic
+          example: "Task Management Session"
+        created_at:
+          type: string
+          format: date-time
+          description: When the conversation was created
+        updated_at:
+          type: string
+          format: date-time
+          description: When the conversation was last updated
+        is_active:
+          type: boolean
+          description: Whether the conversation is currently active
+          default: true
+
+    ConversationWithMessages:
+      allOf:
+        - $ref: '#/components/schemas/Conversation'
+        - type: object
+          properties:
+            messages:
+              type: array
+              items:
+                $ref: '#/components/schemas/Message'
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the message
+        conversation_id:
+          type: string
+          format: uuid
+          description: ID of the parent conversation
+        role:
+          type: string
+          enum: [user, assistant, system]
+          description: Role of the message sender
+        content:
+          type: string
+          description: The actual message content
+        timestamp:
+          type: string
+          format: date-time
+          description: When the message was sent/received
+        tool_calls:
+          type: array
+          items:
+            $ref: '#/components/schemas/ToolCall'
+          description: MCP tool calls made during this message
+        tool_responses:
+          type: array
+          items:
+            $ref: '#/components/schemas/ToolResponse'
+          description: Responses from executed tools
+        message_type:
+          type: string
+          enum: [text, tool_result, feedback]
+          description: Classification of the message type
+
+    ToolCall:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the tool call
+        type:
+          type: string
+          enum: [function]
+          description: Type of tool call
+        function:
+          type: object
+          properties:
+            name:
+              type: string
+              description: Name of the function/tool
+            arguments:
+              type: string
+              description: JSON string of arguments for the tool
+              example: '{"task_title": "Buy groceries", "due_date": "2024-01-15"}'
+
+    ToolResponse:
+      type: object
+      properties:
+        tool_call_id:
+          type: string
+          description: ID of the tool call this responds to
+        name:
+          type: string
+          description: Name of the tool
+        content:
+          type: string
+          description: Result of the tool execution
+          example: '{"success": true, "task_id": "abc123", "message": "Task created successfully"}'
+
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Authentication required"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Conversation not found"
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Invalid input parameters"
+    UnprocessableEntity:
+      description: Unable to process the request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Unable to process the AI request"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from authentication endpoint
