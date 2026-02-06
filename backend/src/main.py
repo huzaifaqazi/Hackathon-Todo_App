@@ -6,12 +6,16 @@ from sqlmodel import SQLModel
 from src.database import engine
 from src.api.auth_routes import router as auth_router
 from src.api.task_routes import router as task_router
+from src.api.chat_routes import router as chat_router
 import os
 
 # Import all models to ensure they are registered with SQLModel before creating tables
 from src.models.user import User
 from src.models.task import Task
 from src.models.session import Session
+from src.models.conversation import Conversation
+from src.models.message import Message
+from src.models.tool_execution import ToolExecution
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -57,6 +61,7 @@ app.add_middleware(
 # Include routers
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
 app.include_router(task_router, prefix="/api/v1/tasks", tags=["tasks"])
+app.include_router(chat_router, prefix="/api/v1/chat", tags=["chat"])
 
 @app.get("/")
 def read_root():
@@ -70,4 +75,5 @@ def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8000))  # Use PORT env var or default to 8000
+    uvicorn.run(app, host="0.0.0.0", port=port)

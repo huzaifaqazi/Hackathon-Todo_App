@@ -217,6 +217,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - TypeScript/JavaScript for frontend, Python 3.11+ for backend + Next.js 16+, Tailwind CSS, FastAPI, Better Auth, PostgreSQL (004-ui-design)
 - TypeScript/JavaScript for frontend, Python 3.11+ for backend + Next.js 16+, Tailwind CSS, Better Auth, React (001-ui-design)
 - Neon Serverless PostgreSQL (existing backend unchanged) (001-ui-design)
+- Python 3.11+ (backend/FastAPI), JavaScript/TypeScript (frontend/Next.js) + FastAPI, Better Auth, Next.js 16+, Tailwind CSS, React, OpenAI SDK, MCP SDK (005-ai-chatbot)
+- Python 3.11+ (backend/FastAPI), JavaScript/TypeScript (frontend/Next.js) + FastAPI, Better Auth, Next.js 16+, Tailwind CSS, React, OpenRouter SDK, MCP SDK (005-ai-chatbot)
 
 ## Recent Changes
 - 001-todo-console-app: Added Python 3.13+ + UV for environment management, built-in Python libraries only

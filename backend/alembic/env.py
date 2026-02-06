@@ -13,6 +13,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from src.models.user import User
 from src.models.task import Task
 from src.models.session import Session
+from src.models.conversation import Conversation
+from src.models.message import Message
+from src.models.tool_execution import ToolExecution
 
 # this is the Alembic Config object
 config = context.config
