@@ -59,15 +59,15 @@ backend:
     - name: DATABASE_URL
       value: "postgresql://neondb_owner:npg_OrYwBkjC4Ec6@ep-jolly-silence-ahr60erc-pooler.c-3.us-east-1.aws.neon.tech/my-database?sslmode=require&channel_binding=require"
     - name: SECRET_KEY
-      value: "xVy5cpVUAzOJ5YaZClelpMSf4THFXne7"
+      value: "xVy5cpVUAzOJ*"
     - name: BETTER_AUTH_URL
       value: "http://localhost:3000"
     - name: OPENROUTER_API_KEY
-      value: "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"
+      value: "sk-or-v1-a0ec7e35f2ad3ab7d6a58ad328ff69a6c3821*"
     - name: OPENROUTER_MODEL
       value: "meta-llama/llama-3.1-70b-instruct:free"
     - name: GEMINI_API_KEY
-      value: "AIzaSyByTquD7fTquwU7-_mxX5ett3VVbO2mgQ8"
+      value: "AIzaSyByTquD7fTquwU7*"
 
   # We might need a separate service account if the backend needs specific RBAC permissions
   # serviceAccount:
