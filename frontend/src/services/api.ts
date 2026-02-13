@@ -45,14 +45,9 @@ apiClient.interceptors.response.use(
         localStorage.removeItem('access_token');
       }
       // Redirect to login page only if we're in the browser
-      // if (typeof window !== 'undefined') {
-      //   // Use router.replace instead of direct window.location for better Next.js handling
-      //   // But since we don't have router here, we'll use location.replace
-      //   window.location.replace('/login');
-      // }
       if (window.location.pathname !== '/login') {
           window.location.replace('/login');
-        }
+      }
     }
 
     return Promise.reject(error);
