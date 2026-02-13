@@ -38,7 +38,7 @@ class AuthService {
   private apiUrl: string;
 
   constructor() {
-    this.apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://huzaifaqazi-todo-app.hf.space';
+    this.apiUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://huzaifaqazi-todo-app.hf.space').trim();
   }
 
   async login(email: string, password: string): Promise<LoginResponse> {
@@ -180,7 +180,8 @@ class AuthService {
       const response = await axios.get(`${this.apiUrl}/api/v1/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
-        }
+        },
+        timeout: 10000, // 10 second timeout
       });
 
       if (response.data.success) {
@@ -198,10 +199,16 @@ class AuthService {
                            error.response.data?.message ||
                            error.response.statusText ||
                            'Failed to get user data';
-        throw new Error(errorMessage);
+
+        // Create a more specific error for authentication failures
+        const authError: any = new Error(errorMessage);
+        authError.response = error.response;
+        throw authError;
       } else if (error.request) {
         // The request was made but no response was received
-        throw new Error('Network error: Unable to reach the server. Please check if the backend is running.');
+        const networkError: any = new Error('Network error: Unable to reach the server. Please check your connection.');
+        networkError.isNetworkError = true;
+        throw networkError;
       } else {
         // Something happened in setting up the request that triggered an Error
         throw new Error(error.message || 'Failed to get user data');

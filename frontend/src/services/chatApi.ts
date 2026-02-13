@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://huzaifaqazi-todo-app.hf.space';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://huzaifaqazi-todo-app.hf.space').trim();
 
 interface CreateConversationRequest {
   initial_message: string;
