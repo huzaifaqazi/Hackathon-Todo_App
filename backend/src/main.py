@@ -54,8 +54,8 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    # Additional security headers
-    allow_origin_regex=r"https?://localhost(:[0-9]+)?",
+    # Allow localhost and 127.0.0.1 with any port for development
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:[0-9]+)?",
 )
 
 # Include routers

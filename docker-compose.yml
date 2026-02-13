@@ -1,54 +1,20 @@
 version: '3.8'
 
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/todoapp
-      - SECRET_KEY=your-super-secret-key-change-in-production
-      - ALGORITHM=HS256
-      - ACCESS_TOKEN_EXPIRE_MINUTES=30
-    depends_on:
-      - db
-    volumes:
-      - ./backend:/app
-    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
-
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: todo-frontend:latest
     ports:
       - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-    depends_on:
-      - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    command: npm run dev
+    networks:
+      - todo-app-network
 
-  db:
-    image: postgres:15
-    restart: always
-    environment:
-      POSTGRES_DB: todoapp
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+  backend:
+    image: todo-backend:latest
     ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d todoapp"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - "8000:8000"
+    networks:
+      - todo-app-network
 
-volumes:
-  postgres_data:
+networks:
+  todo-app-network:
+    driver: bridge
