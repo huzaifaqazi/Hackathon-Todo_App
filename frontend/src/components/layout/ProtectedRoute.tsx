@@ -13,19 +13,38 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
-  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
+    // Only redirect after loading is complete and we're sure user is not authenticated
     if (!loading) {
-      setHasCheckedAuth(true);
       if (!isAuthenticated) {
-        router.push(redirectTo);
+        // Check if token exists in localStorage before redirecting
+        const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+
+        if (!token) {
+          // No token, definitely not authenticated
+          router.replace(redirectTo);
+        } else {
+          // Token exists but auth check might have failed due to network
+          // Give it a moment before redirecting
+          const timer = setTimeout(() => {
+            if (!isAuthenticated) {
+              router.replace(redirectTo);
+            }
+          }, 1000);
+
+          return () => clearTimeout(timer);
+        }
+      } else {
+        // User is authenticated, allow rendering
+        setShouldRender(true);
       }
     }
   }, [isAuthenticated, loading, router, redirectTo]);
 
   // Show loading state while checking auth status
-  if (loading || !hasCheckedAuth) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
@@ -34,12 +53,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // If authenticated, render the children
-  if (isAuthenticated) {
+  if (isAuthenticated && shouldRender) {
     return <>{children}</>;
   }
 
-  // If not authenticated and not loading, return null (will be redirected by useEffect)
-  return null;
+  // Show loading while waiting for redirect
+  return (
+    <div className="flex justify-center items-center h-screen">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+    </div>
+  );
 };
 
 export default ProtectedRoute;

@@ -35,18 +35,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        if (authService.isAuthenticated()) {
-          await getCurrentUser();
-          setIsAuthenticated(true);
+        // Only check auth if we're in the browser
+        if (typeof window === 'undefined') {
+          setLoading(false);
+          return;
+        }
+
+        const token = localStorage.getItem('access_token');
+
+        if (token) {
+          // Token exists, try to validate it
+          try {
+            await getCurrentUser();
+            setIsAuthenticated(true);
+          } catch (error: any) {
+            console.error('Token validation failed:', error);
+
+            // Only clear token if it's definitely invalid (401/403)
+            // Don't clear on network errors
+            if (error.message?.includes('Authentication failed') ||
+                error.response?.status === 401 ||
+                error.response?.status === 403) {
+              localStorage.removeItem('access_token');
+              setIsAuthenticated(false);
+              setUser(null);
+            } else {
+              // Network error or other issue - keep token and retry later
+              console.warn('Auth check failed but keeping token for retry');
+              setIsAuthenticated(false);
+              setUser(null);
+            }
+          }
         } else {
-          // If no token exists, explicitly set as not authenticated
+          // No token exists
           setIsAuthenticated(false);
+          setUser(null);
         }
       } catch (error) {
-        console.error('Auth check failed:', error);
-        // Clear any invalid token
-        localStorage.removeItem('access_token');
-        // Explicitly set as not authenticated after clearing invalid token
+        console.error('Auth check error:', error);
         setIsAuthenticated(false);
         setUser(null);
       } finally {
@@ -118,11 +144,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(currentUser);
       setIsAuthenticated(true);
       return currentUser; // Return the user data for calling functions to use
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to get current user:', error);
-      setUser(null);
-      setIsAuthenticated(false);
-      localStorage.removeItem('access_token');
+
+      // Only clear token and state if it's an authentication error
+      // Don't clear on network errors
+      if (!error.isNetworkError) {
+        setUser(null);
+        setIsAuthenticated(false);
+        localStorage.removeItem('access_token');
+      }
+
       throw error; // Re-throw the error so calling functions can handle it
     }
   };

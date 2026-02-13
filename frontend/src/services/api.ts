@@ -3,7 +3,7 @@ import { Task } from '../types/task';
 
 // Create an axios instance with base configuration
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://huzaifaqazi-todo-app.hf.space',
+  baseURL: (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://huzaifaqazi-todo-app.hf.space').trim(),
   timeout: 10000, // 10 seconds timeout
   headers: {
     'Content-Type': 'application/json',
@@ -45,10 +45,6 @@ apiClient.interceptors.response.use(
         localStorage.removeItem('access_token');
       }
       // Redirect to login page only if we're in the browser
-      // if (typeof window !== 'undefined') {
-      //   // Use router.replace instead of direct window.location for better Next.js handling
-      //   // But since we don't have router here, we'll use location.replace
-      //   window.location.replace('/login');
       if (window.location.pathname !== '/login') {
           window.location.replace('/login');
       }
