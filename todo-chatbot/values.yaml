@@ -1,0 +1,101 @@
+# Default values for todo-chatbot.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+frontend:
+  name: "todo-frontend"
+  image:
+    repository: todo-frontend
+    tag: latest
+    pullPolicy: Never
+  service:
+    type: NodePort # For local minikube access
+    port: 3000
+    targetPort: 3000
+  ingress:
+    enabled: true # Enable ingress for frontend for easier access
+    host: todo-frontend.local
+    paths:
+      - path: /
+        pathType: ImplementationSpecific
+  livenessProbe:
+    httpGet:
+      path: / # Assuming Next.js app responds on root
+      port: 3000
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 3000
+  env:
+    - name: NEXT_PUBLIC_API_URL
+      value: http://192.168.58.2:30483
+    - name: NEXT_PUBLIC_AUTH_SECRET
+      value: HMr7b25BlQCuiCgPfz8a40Gqh7pnpVag
+    - name: NEXT_PUBLIC_BASE_URL
+      value: http://localhost:3000
+
+
+backend:
+  name: "todo-backend"
+  image:
+    repository: todo-backend
+    tag: latest
+    pullPolicy: Never
+  service:
+    type: NodePort # Backend will be accessed internally by frontend
+    port: 8000
+    targetPort: 8000
+  livenessProbe:
+    httpGet:
+      path: /health # Assuming backend has a health endpoint
+      port: 8000
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8000
+  env:
+    - name: DATABASE_URL
+      value: "postgresql://neondb_owner:npg_OrYwBkjC4Ec6@ep-jolly-silence-ahr60erc-pooler.c-3.us-east-1.aws.neon.tech/my-database?sslmode=require&channel_binding=require"
+    - name: SECRET_KEY
+      value: "xVy5cpVUAzOJ5YaZClelpMSf4THFXne7"
+    - name: BETTER_AUTH_URL
+      value: "http://localhost:3000"
+    - name: OPENROUTER_API_KEY
+      value: "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"
+    - name: OPENROUTER_MODEL
+      value: "meta-llama/llama-3.1-70b-instruct:free"
+    - name: GEMINI_API_KEY
+      value: "AIzaSyByTquD7fTquwU7-_mxX5ett3VVbO2mgQ8"
+
+  # We might need a separate service account if the backend needs specific RBAC permissions
+  # serviceAccount:
+  #   create: true
+  #   name: "backend-service-account"
+
+nameOverride: ""
+
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+securityContext: {}
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes: []
+volumeMounts: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
