@@ -1,443 +1,308 @@
 import React, { useState, useCallback } from 'react';
 import ProtectedRoute from '../components/layout/ProtectedRoute';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import TaskForm from '../components/task/TaskForm';
-import { TaskList } from '../components/tasks/task-list';
-import { TaskCard } from '../components/tasks/task-card';
 import { Task } from '../types/task';
 import { taskApi } from '../services/api';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Input } from '../components/ui/input';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../components/ui/select';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
-import { Search, Plus, Calendar, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import {
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  TrendingUp,
+  Plus,
+  MessageSquare,
+  MoreVertical,
+  Calendar
+} from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
-  const [showTaskForm, setShowTaskForm] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState<string | null>(null); // Track which task is being deleted
-  const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<Task | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [priorityFilter, setPriorityFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'created_at' | 'due_date' | 'priority' | 'status'>('created_at');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
 
   // Function to fetch tasks
   const fetchTasks = useCallback(async () => {
     try {
       setLoading(true);
-      setError(null); // Clear previous errors
       const response = await taskApi.getTasks();
-
-      // Check if response has the expected structure
       if (response && response.data && response.data.tasks) {
         setTasks(response.data.tasks || []);
       } else {
         setTasks([]);
-        console.warn('Unexpected API response format:', response);
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to load tasks');
       console.error('Error fetching tasks:', err);
-      setTasks([]); // Set empty tasks on error to avoid blocking the UI
+      setTasks([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Function to filter and sort tasks
-  const applyFiltersAndSorting = useCallback(() => {
-    let result = [...tasks];
-
-    // Apply search filter
-    if (searchTerm) {
-      result = result.filter(task =>
-        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (task.description && task.description.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      result = result.filter(task => task.status === statusFilter);
-    }
-
-    // Apply priority filter
-    if (priorityFilter !== 'all') {
-      result = result.filter(task => task.priority === priorityFilter);
-    }
-
-    // Apply sorting
-    result.sort((a, b) => {
-      let aValue: any, bValue: any;
-
-      switch (sortBy) {
-        case 'created_at':
-          aValue = new Date(a.created_at).getTime();
-          bValue = new Date(b.created_at).getTime();
-          break;
-        case 'due_date':
-          aValue = a.due_date ? new Date(a.due_date).getTime() : 0;
-          bValue = b.due_date ? new Date(b.due_date).getTime() : 0;
-          break;
-        case 'priority':
-          aValue = ['high', 'medium', 'low'].indexOf(a.priority);
-          bValue = ['high', 'medium', 'low'].indexOf(b.priority);
-          break;
-        case 'status':
-          aValue = ['pending', 'in-progress', 'completed'].indexOf(a.status);
-          bValue = ['pending', 'in-progress', 'completed'].indexOf(b.status);
-          break;
-        default:
-          aValue = a.created_at;
-          bValue = b.created_at;
-      }
-
-      if (sortOrder === 'asc') {
-        return aValue - bValue;
-      } else {
-        return bValue - aValue;
-      }
-    });
-
-    setFilteredTasks(result);
-  }, [tasks, searchTerm, statusFilter, priorityFilter, sortBy, sortOrder]);
-
-  // Function to handle saving a new task
-  const handleSaveTask = useCallback(async (taskData: Partial<Task>) => {
-    setSaving(true);
-    setError(null); // Clear previous errors
-
-    try {
-      if (taskData.id) {
-        // Update existing task
-        if (taskData.hasOwnProperty('title') || taskData.hasOwnProperty('description') ||
-            taskData.hasOwnProperty('status') || taskData.hasOwnProperty('priority') ||
-            taskData.hasOwnProperty('due_date')) {
-          await taskApi.updateTask(taskData.id, taskData);
-        }
-      } else {
-        // Create new task
-        await taskApi.createTask(taskData);
-      }
-
-      // Refresh tasks
-      await fetchTasks();
-      setShowTaskForm(false);
-      setFormData(null);
-    } catch (err: any) {
-      setError(err.message || 'Failed to save task');
-      console.error('Error saving task:', err);
-    } finally {
-      setSaving(false);
-    }
+  // Fetch tasks on mount
+  React.useEffect(() => {
+    fetchTasks();
   }, [fetchTasks]);
 
-  // Function to cancel form
-  const handleCancelForm = useCallback(() => {
-    setShowTaskForm(false);
-  }, []);
+  // Calculate stats
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(t => t.status === 'completed').length;
+  const pendingTasks = tasks.filter(t => t.status === 'pending').length;
+  const inProgressTasks = tasks.filter(t => t.status === 'in-progress').length;
 
-  // Function to handle deleting a task
-  const handleDeleteTask = useCallback(async (taskId: string) => {
-    if (!window.confirm('Are you sure you want to delete this task?')) {
-      return;
+  // Get recent tasks (last 5)
+  const recentTasks = tasks.slice(0, 5);
+
+  // Priority badge colors
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return 'bg-red-100 text-red-700';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-700';
+      case 'low':
+        return 'bg-green-100 text-green-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
     }
+  };
 
-    setDeleting(taskId);
-    setError(null);
-
-    try {
-      await taskApi.deleteTask(taskId);
-      await fetchTasks(); // Refresh tasks after deletion
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete task');
-      console.error('Error deleting task:', err);
-    } finally {
-      setDeleting(null);
-    }
-  }, [fetchTasks]);
-
-  // Fetch tasks when component mounts and auth is ready
-  React.useEffect(() => {
-    if (isAuthenticated) {
-      fetchTasks();
-    }
-  }, [isAuthenticated, fetchTasks]);
-
-  // Apply filters and sorting when tasks or filter/sort parameters change
-  React.useEffect(() => {
-    applyFiltersAndSorting();
-  }, [tasks, searchTerm, statusFilter, priorityFilter, sortBy, sortOrder]);
+  // Format date
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
 
   return (
     <ProtectedRoute>
       <DashboardLayout>
-        <div
-          className="min-h-screen w-full"
-          style={{
-            background: 'linear-gradient(135deg, #f7eeee 0%, #e2ead4 100%)' // Light pink to light green gradient
-          }}
-        >
-          {/* Content container */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Page Header */}
-          <div className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Task Dashboard</h1>
-              <p className="text-muted-foreground">Manage and track your tasks efficiently</p>
-            </div>
-            <Link href="/chat">
-              <Button variant="secondary" className="py-3 px-4 text-base font-semibold">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                AI Chat Assistant
-              </Button>
-            </Link>
-          </div>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-blue-100 text-sm font-medium">Total Tasks</p>
-                    <p className="text-3xl font-bold">{tasks.length}</p>
-                  </div>
-                  <div className="bg-white/20 p-3 rounded-lg">
-                    <CheckCircle2 className="h-6 w-6" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-orange-100 text-sm font-medium">Pending Tasks</p>
-                    <p className="text-3xl font-bold">{tasks.filter(t => t.status === 'pending').length}</p>
-                  </div>
-                  <div className="bg-white/20 p-3 rounded-lg">
-                    <Calendar className="h-6 w-6" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-green-100 text-sm font-medium">Completed Tasks</p>
-                    <p className="text-3xl font-bold">{tasks.filter(t => t.status === 'completed').length}</p>
-                  </div>
-                  <div className="bg-white/20 p-3 rounded-lg">
-                    <TrendingUp className="h-6 w-6" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Task Form */}
-          {showTaskForm && (
+        <div className="min-h-screen bg-[#F9FAFB] p-6">
+          <div className="max-w-7xl mx-auto">
+            {/* Welcome Section */}
             <div className="mb-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Add New Task</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <TaskForm task={formData || null} onSave={handleSaveTask} onCancel={handleCancelForm} />
-                </CardContent>
-              </Card>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Welcome back, {user?.first_name}! 👋
+              </h1>
+              <p className="text-gray-600">Here's what's happening with your tasks today.</p>
             </div>
-          )}
 
-          {/* Search and Filters */}
-          <Card className="mb-8 bg-white">
-            <CardContent className="p-8">
-              <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
-                <div className="lg:col-span-2">
-                  <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
-                    Search Tasks
-                  </label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="search"
-                      placeholder="Search tasks by title or description..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 py-3 text-base bg-white border border-gray-400 rounded-lg"
-                    />
+            {/* Stats Cards Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {/* Total Tasks */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-purple-100 text-sm font-medium mb-1">Total Tasks</p>
+                    <p className="text-4xl font-bold">{totalTasks}</p>
+                    <p className="text-purple-100 text-xs mt-2">+12% from last week</p>
+                  </div>
+                  <div className="bg-white/20 p-3 rounded-lg">
+                    <CheckCircle2 className="w-8 h-8" />
                   </div>
                 </div>
+              </motion.div>
 
-                <div>
-                  <label htmlFor="status-select" className="block text-sm font-medium text-gray-700 mb-2">
-                    Status
-                  </label>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger id="status-select" className="py-3 text-base cursor-pointer hover:cursor-pointer">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all" className="cursor-pointer">All Statuses</SelectItem>
-                      <SelectItem value="pending" className="cursor-pointer">Pending</SelectItem>
-                      <SelectItem value="in-progress" className="cursor-pointer">In Progress</SelectItem>
-                      <SelectItem value="completed" className="cursor-pointer">Completed</SelectItem>
-                    </SelectContent>
-                  </Select>
+              {/* Completed Tasks */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-green-100 text-sm font-medium mb-1">Completed Tasks</p>
+                    <p className="text-4xl font-bold">{completedTasks}</p>
+                    <p className="text-green-100 text-xs mt-2">+8% from last week</p>
+                  </div>
+                  <div className="bg-white/20 p-3 rounded-lg">
+                    <TrendingUp className="w-8 h-8" />
+                  </div>
                 </div>
+              </motion.div>
 
-                <div>
-                  <label htmlFor="priority-select" className="block text-sm font-medium text-gray-700 mb-2">
-                    Priority
-                  </label>
-                  <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                    <SelectTrigger id="priority-select" className="py-3 text-base cursor-pointer hover:cursor-pointer">
-                      <SelectValue placeholder="Priority" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all" className="cursor-pointer">All Priorities</SelectItem>
-                      <SelectItem value="low" className="cursor-pointer">Low</SelectItem>
-                      <SelectItem value="medium" className="cursor-pointer">Medium</SelectItem>
-                      <SelectItem value="high" className="cursor-pointer">High</SelectItem>
-                    </SelectContent>
-                  </Select>
+              {/* Pending Tasks */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-orange-100 text-sm font-medium mb-1">Pending Tasks</p>
+                    <p className="text-4xl font-bold">{pendingTasks}</p>
+                    <p className="text-orange-100 text-xs mt-2">Needs attention</p>
+                  </div>
+                  <div className="bg-white/20 p-3 rounded-lg">
+                    <AlertCircle className="w-8 h-8" />
+                  </div>
                 </div>
+              </motion.div>
 
-                <div>
-                  <label htmlFor="sort-select" className="block text-sm font-medium text-gray-700 mb-2">
-                    Sort By
-                  </label>
-                  <Select value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
-                    <SelectTrigger id="sort-select" className="py-3 text-base cursor-pointer hover:cursor-pointer">
-                      <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="created_at" className="cursor-pointer">Created Date</SelectItem>
-                      <SelectItem value="due_date" className="cursor-pointer">Due Date</SelectItem>
-                      <SelectItem value="priority" className="cursor-pointer">Priority</SelectItem>
-                      <SelectItem value="status" className="cursor-pointer">Status</SelectItem>
-                    </SelectContent>
-                  </Select>
+              {/* In Progress */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-blue-100 text-sm font-medium mb-1">In Progress</p>
+                    <p className="text-4xl font-bold">{inProgressTasks}</p>
+                    <p className="text-blue-100 text-xs mt-2">Keep going!</p>
+                  </div>
+                  <div className="bg-white/20 p-3 rounded-lg">
+                    <Clock className="w-8 h-8" />
+                  </div>
                 </div>
+              </motion.div>
+            </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Order
-                  </label>
-                  <Button
-                    variant="outline-blue"
-                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                    className="w-full py-3 text-base"
-                  >
-                    {sortOrder === 'asc' ? '↑ Ascending' : '↓ Descending'}
-                  </Button>
+            {/* Quick Actions Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"
+            >
+              {/* Add New Task Button */}
+              <Link href="/tasks">
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-8 text-white cursor-pointer hover:shadow-xl transition-shadow">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-white/20 p-4 rounded-lg">
+                      <Plus className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold mb-1">Add New Task</h3>
+                      <p className="text-blue-100">Create and organize your tasks</p>
+                    </div>
+                  </div>
                 </div>
+              </Link>
+
+              {/* Start AI Chat Button */}
+              <Link href="/chat">
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-8 text-white cursor-pointer hover:shadow-xl transition-shadow">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-white/20 p-4 rounded-lg">
+                      <MessageSquare className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold mb-1">Start AI Chat</h3>
+                      <p className="text-purple-100">Get help managing your tasks</p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+
+            {/* Recent Tasks Widget */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="bg-white rounded-xl shadow-lg p-6 mb-8"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Recent Tasks</h2>
+                <Link href="/tasks" className="text-blue-500 hover:text-blue-600 font-medium text-sm">
+                  View All →
+                </Link>
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-8 space-y-4 sm:space-y-0">
-                <h2 className="text-xl font-bold text-gray-900">
-                  Your Tasks <span className="text-gray-500 font-normal">({filteredTasks.length})</span>
-                </h2>
-                <Button
-                  variant="primary"
-                  onClick={() => setShowTaskForm(true)}
-                  className="py-3 px-6 text-base font-semibold"
-                >
-                  <Plus className="mr-2 h-5 w-5" />
-                  Add New Task
-                </Button>
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                </div>
+              ) : recentTasks.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 mb-4">No tasks yet</p>
+                  <Link href="/tasks">
+                    <button className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                      Create your first task
+                    </button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {recentTasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
+                    >
+                      {/* Checkbox */}
+                      <input
+                        type="checkbox"
+                        checked={task.status === 'completed'}
+                        onChange={() => {}}
+                        className="w-5 h-5 text-blue-500 rounded border-gray-300 focus:ring-blue-500"
+                      />
+
+                      {/* Task Info */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 truncate">{task.title}</h3>
+                        {task.description && (
+                          <p className="text-sm text-gray-500 truncate">{task.description}</p>
+                        )}
+                      </div>
+
+                      {/* Priority Badge */}
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(
+                          task.priority
+                        )}`}
+                      >
+                        {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                      </span>
+
+                      {/* Due Date */}
+                      {task.due_date && (
+                        <div className="flex items-center gap-1 text-sm text-gray-500">
+                          <Calendar className="w-4 h-4" />
+                          {formatDate(task.due_date)}
+                        </div>
+                      )}
+
+                      {/* Menu */}
+                      <button className="p-2 hover:bg-gray-100 rounded-lg">
+                        <MoreVertical className="w-5 h-5 text-gray-400" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+
+            {/* Productivity Chart */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              className="bg-white rounded-xl shadow-lg p-6"
+            >
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Productivity Overview</h2>
+              <div className="flex items-end justify-between h-64 gap-4">
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
+                  const height = Math.random() * 100 + 50; // Random height for demo
+                  return (
+                    <div key={day} className="flex-1 flex flex-col items-center gap-2">
+                      <div className="w-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-lg transition-all hover:from-blue-600 hover:to-blue-500" style={{ height: `${height}%` }}></div>
+                      <span className="text-sm text-gray-600 font-medium">{day}</span>
+                    </div>
+                  );
+                })}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Task List */}
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            </div>
-          ) : error ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <p className="text-red-500">{error}</p>
-              </CardContent>
-            </Card>
-          ) : filteredTasks.length === 0 ? (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <div className="mx-auto h-12 w-12 text-gray-400">
-                  <svg
-                    className="h-full w-full"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                    ></path>
-                  </svg>
-                </div>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No tasks</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Get started by creating a new task.
-                </p>
-                <div className="mt-6">
-                  <Button variant="primary" onClick={() => setShowTaskForm(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Task
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              <TaskList
-                tasks={filteredTasks}
-                onEdit={(task) => {
-                  setFormData(task);
-                  setShowTaskForm(true);
-                }}
-                onDelete={handleDeleteTask}
-                onComplete={async (taskId) => {
-                  try {
-                    const task = tasks.find(t => t.id === taskId);
-                    if (task) {
-                      const newStatus = task.status === 'completed' ? 'pending' : 'completed';
-                      await taskApi.updateTask(taskId, { ...task, status: newStatus });
-                      await fetchTasks(); // Refresh tasks after update
-                    }
-                  } catch (err: any) {
-                    setError(err.message || 'Failed to update task');
-                    console.error('Error updating task:', err);
-                  }
-                }}
-                deletingId={deleting}
-                saving={saving}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Closing divs for the interactive background */}
+              <p className="text-center text-sm text-gray-500 mt-4">Tasks completed in the last 7 days</p>
+            </motion.div>
+          </div>
         </div>
       </DashboardLayout>
     </ProtectedRoute>
