@@ -3,7 +3,9 @@ import { Task } from '../types/task';
 
 // Create an axios instance with base configuration
 const apiClient = axios.create({
-  baseURL: (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://huzaifaqazi-todo-app.hf.space').trim(),
+  baseURL: (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://huzaifaqazi-todo-app.hf.space')
+    .replace(/\s+/g, '') // Remove all whitespace including newlines
+    .trim(),
   timeout: 10000, // 10 seconds timeout
   headers: {
     'Content-Type': 'application/json',

@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://huzaifaqazi-todo-app.hf.space').trim();
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://huzaifaqazi-todo-app.hf.space')
+  .replace(/\s+/g, '') // Remove all whitespace including newlines
+  .trim();
 
 interface CreateConversationRequest {
   initial_message: string;
