@@ -44,9 +44,17 @@ apiClient.interceptors.response.use(
       if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
         localStorage.removeItem('access_token');
       }
-      // Redirect to login page only if we're in the browser
-      if (window.location.pathname !== '/login') {
+
+      // Only redirect to login from protected pages
+      // Public pages (/, /login, /register) should NOT redirect
+      if (typeof window !== 'undefined') {
+        const publicRoutes = ['/', '/login', '/register'];
+        const currentPath = window.location.pathname;
+
+        // Only redirect if we're NOT on a public route
+        if (!publicRoutes.includes(currentPath)) {
           window.location.replace('/login');
+        }
       }
     }
 
