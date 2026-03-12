@@ -21,6 +21,8 @@ class AIService:
         self.api_key = os.getenv("GEMINI_API_KEY")
         if not self.api_key:
             raise ValueError("GEMINI_API_KEY environment variable is required")
+        # Strip whitespace and newlines from API key
+        self.api_key = self.api_key.strip()
 
     async def process_chat_message(self, user_message: str, conversation_history: List[Dict[str, str]] = None, user_id: str = None, session=None) -> Dict[str, Any]:
         """
