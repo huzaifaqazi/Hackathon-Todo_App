@@ -38,7 +38,9 @@ class AuthService {
   private apiUrl: string;
 
   constructor() {
-    this.apiUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://huzaifaqazi-todo-app.hf.space').trim();
+    this.apiUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://huzaifaqazi-todo-app.hf.space')
+      .replace(/\s+/g, '') // Remove all whitespace including newlines
+      .trim();
   }
 
   async login(email: string, password: string): Promise<LoginResponse> {
