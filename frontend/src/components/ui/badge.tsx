@@ -4,20 +4,25 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors cursor-default",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+          "border-transparent bg-primary-100 text-primary-700",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "border-transparent bg-surface-muted text-ink-muted",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
-        high: "border-transparent bg-red-500 text-white hover:bg-red-500/80",
-        medium: "border-transparent bg-amber-500 text-black hover:bg-amber-500/80",
-        low: "border-transparent bg-gray-500 text-white hover:bg-gray-500/80",
+          "border-transparent bg-danger-100 text-danger-700",
+        outline: "border-ink-border text-ink-muted",
+        /* Task priority — the single source of truth app-wide */
+        high: "border-transparent bg-danger-100 text-danger-700",
+        medium: "border-transparent bg-warning-100 text-warning-700",
+        low: "border-transparent bg-success-100 text-success-700",
+        /* Task status */
+        pending: "border-transparent bg-surface-muted text-ink-muted",
+        "in-progress": "border-transparent bg-primary-100 text-primary-700",
+        completed: "border-transparent bg-success-100 text-success-700",
       },
     },
     defaultVariants: {

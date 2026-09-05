@@ -2,8 +2,13 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../context/AuthContext';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, CheckSquare, User, Check, X } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { Mail, Lock, Eye, EyeOff, User, Check, X, UserPlus } from 'lucide-react';
+import { AuthInput } from '../components/ui/auth-input';
+import { GradientButton } from '../components/ui/gradient-button';
+import { Logo } from '../components/ui/logo';
+import { AuthShowcasePanel } from '../components/ui/auth-showcase-panel';
+import Head from 'next/head';
 
 interface FormData {
   firstName: string;
@@ -40,6 +45,7 @@ const RegisterPage: React.FC = () => {
   }>({});
 
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -61,9 +67,9 @@ const RegisterPage: React.FC = () => {
     if (/[0-9]/.test(password)) score++;
 
     if (score === 0) return { score: 0, label: '', color: '' };
-    if (score === 1) return { score: 1, label: 'Weak', color: 'bg-red-500' };
-    if (score === 2) return { score: 2, label: 'Medium', color: 'bg-yellow-500' };
-    return { score: 3, label: 'Strong', color: 'bg-green-500' };
+    if (score === 1) return { score: 1, label: 'Weak', color: 'bg-danger-600' };
+    if (score === 2) return { score: 2, label: 'Medium', color: 'bg-warning-600' };
+    return { score: 3, label: 'Strong', color: 'bg-success-600' };
   };
 
   const passwordStrength = calculatePasswordStrength(formData.password);
@@ -155,278 +161,312 @@ const RegisterPage: React.FC = () => {
     formData.password.length >= 6 &&
     formData.agreeToTerms;
 
+  const fadeIn = (delay: number) => ({
+    initial: reduceMotion ? false : { opacity: 0, y: 16 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.45, delay, ease: 'easeOut' as const },
+  });
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-[500px]"
-      >
-        {/* Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          {/* Header Section */}
-          <div className="text-center mb-8">
-            {/* Logo */}
-            <div className="mx-auto w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mb-4">
-              <CheckSquare className="w-6 h-6 text-white" />
-            </div>
+    <div className="min-h-screen bg-surface-background flex">
+      <Head>
+        <title>Create Account — TodoApp</title>
+      </Head>
 
-            {/* Heading */}
-            <h1 className="text-[28px] font-bold text-gray-900 mb-2">
-              Create Account
-            </h1>
+      {/* Left showcase panel — hidden on mobile/tablet, matches login page */}
+      <AuthShowcasePanel />
 
-            {/* Subheading */}
-            <p className="text-base text-gray-500">
-              Join us to start managing tasks
-            </p>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Name Row (2 columns) */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* First Name */}
-              <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <User className={`w-5 h-5 ${fieldErrors.firstName ? 'text-red-500' : 'text-gray-400'}`} />
-                  </div>
-                  <input
-                    id="firstName"
-                    name="firstName"
-                    type="text"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    placeholder="John"
-                    className={`block w-full pl-12 pr-4 py-3 border ${
-                      fieldErrors.firstName
-                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                    } rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors`}
-                  />
-                </div>
-                {fieldErrors.firstName && (
-                  <p className="mt-1 text-sm text-red-500">{fieldErrors.firstName}</p>
-                )}
-              </div>
-
-              {/* Last Name */}
-              <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name
-                </label>
-                <div className="relative">
-                  <input
-                    id="lastName"
-                    name="lastName"
-                    type="text"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    placeholder="Doe"
-                    className={`block w-full px-4 py-3 border ${
-                      fieldErrors.lastName
-                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                    } rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors`}
-                  />
-                </div>
-                {fieldErrors.lastName && (
-                  <p className="mt-1 text-sm text-red-500">{fieldErrors.lastName}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Email Input */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email address
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className={`w-5 h-5 ${fieldErrors.email ? 'text-red-500' : 'text-gray-400'}`} />
-                </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="you@example.com"
-                  className={`block w-full pl-12 pr-4 py-3 border ${
-                    fieldErrors.email
-                      ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                      : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                  } rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors`}
-                />
-              </div>
-              {fieldErrors.email && (
-                <p className="mt-1 text-sm text-red-500">{fieldErrors.email}</p>
-              )}
-            </div>
-
-            {/* Password Input */}
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className={`w-5 h-5 ${fieldErrors.password ? 'text-red-500' : 'text-gray-400'}`} />
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Enter your password"
-                  className={`block w-full pl-12 pr-12 py-3 border ${
-                    fieldErrors.password
-                      ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
-                      : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-                  } rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-              {fieldErrors.password && (
-                <p className="mt-1 text-sm text-red-500">{fieldErrors.password}</p>
-              )}
-
-              {/* Password Strength Meter */}
-              {formData.password && (
-                <div className="mt-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${passwordStrength.color} transition-all duration-300`}
-                        style={{ width: `${(passwordStrength.score / 3) * 100}%` }}
-                      />
-                    </div>
-                    {passwordStrength.label && (
-                      <span className={`text-xs font-medium ${
-                        passwordStrength.score === 1 ? 'text-red-500' :
-                        passwordStrength.score === 2 ? 'text-yellow-500' :
-                        'text-green-500'
-                      }`}>
-                        {passwordStrength.label}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Password Requirements Checklist */}
-            <div className="space-y-2">
-              {passwordRequirements.map((req, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  {req.met ? (
-                    <Check className="w-4 h-4 text-green-500" />
-                  ) : (
-                    <X className="w-4 h-4 text-gray-400" />
-                  )}
-                  <span className={`text-sm ${req.met ? 'text-green-600' : 'text-gray-500'}`}>
-                    {req.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Terms & Conditions */}
-            <div>
-              <div className="flex items-start">
-                <input
-                  id="agreeToTerms"
-                  name="agreeToTerms"
-                  type="checkbox"
-                  checked={formData.agreeToTerms}
-                  onChange={handleChange}
-                  className="h-4 w-4 text-blue-500 focus:ring-blue-500 border-gray-300 rounded cursor-pointer mt-0.5"
-                />
-                <label htmlFor="agreeToTerms" className="ml-2 block text-sm text-gray-700 cursor-pointer">
-                  I agree to the{' '}
-                  <a href="#" className="text-blue-500 hover:text-blue-600 underline">
-                    Terms & Conditions
-                  </a>
-                  {' '}and{' '}
-                  <a href="#" className="text-blue-500 hover:text-blue-600 underline">
-                    Privacy Policy
-                  </a>
-                </label>
-              </div>
-              {fieldErrors.agreeToTerms && (
-                <p className="mt-1 text-sm text-red-500">{fieldErrors.agreeToTerms}</p>
-              )}
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-                {error}
-              </div>
-            )}
-
-            {/* Create Account Button */}
-            <motion.button
-              type="submit"
-              disabled={loading || !isFormValid}
-              whileHover={{ scale: loading || !isFormValid ? 1 : 1.01 }}
-              whileTap={{ scale: loading || !isFormValid ? 1 : 0.98 }}
-              className={`w-full font-semibold py-3 px-4 rounded-lg transition-colors shadow-sm ${
-                loading || !isFormValid
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-500 hover:bg-blue-600 text-white'
-              }`}
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Creating account...
-                </div>
-              ) : (
-                'Create Account'
-              )}
-            </motion.button>
-          </form>
-
-          {/* Footer */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <Link href="/login" className="font-bold text-blue-500 hover:text-blue-600 transition-colors">
-                Sign in
-              </Link>
-            </p>
-          </div>
+      {/* Right: form column */}
+      <div className="flex-1 relative flex flex-col overflow-hidden">
+        {/* Soft background accents for the form side */}
+        <div className="fixed inset-0 pointer-events-none lg:left-[46%] xl:left-[44%]" aria-hidden="true">
+          <motion.div
+            className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-primary-100 to-violet-100 rounded-full blur-3xl opacity-60"
+            animate={reduceMotion ? undefined : { x: [0, 30, 0], y: [0, 20, 0] }}
+            transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <motion.div
+            className="absolute -bottom-32 left-1/4 w-80 h-80 bg-gradient-to-tr from-primary-50 to-accent-50 rounded-full blur-3xl opacity-60"
+            animate={reduceMotion ? undefined : { x: [0, -24, 0], y: [0, -16, 0] }}
+            transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
+          />
         </div>
 
-        {/* Back to Home Link */}
-        <div className="mt-4 text-center">
-          <Link href="/" className="text-sm text-red-500 hover:text-red-600 transition-colors inline-flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        {/* Top bar: back to home */}
+        <div className="relative z-10 flex items-center justify-between p-6 lg:p-8">
+          <Link
+            href="/"
+            className="text-sm text-ink-subtle hover:text-ink transition-colors inline-flex items-center gap-1.5 group cursor-pointer"
+          >
+            <svg
+              className="w-4 h-4 transition-transform group-hover:-translate-x-1"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
             Back to Home
           </Link>
+
+          {/* Mobile logo (desktop me showcase panel ke sath redundant hota) */}
+          <div className="lg:hidden">
+            <Logo size={32} showWordmark />
+          </div>
         </div>
-      </motion.div>
+
+        {/* Centered form card — scrollable for tall form */}
+        <div className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-8 py-8">
+          <motion.div
+            {...fadeIn(0)}
+            className="w-full max-w-[500px] max-h-full overflow-y-auto scrollbar-thin"
+          >
+            <div className="bg-white/90 backdrop-blur-sm rounded-modal shadow-overlay p-8 sm:p-10 border border-ink-border">
+              {/* Header Section */}
+              <motion.div {...fadeIn(0.1)} className="text-left mb-8">
+                <div className="flex justify-start mb-5">
+                  <Logo size={44} />
+                </div>
+
+                <h1 className="text-[28px] font-bold text-ink mb-2 tracking-tight">
+                  Create your account
+                </h1>
+                <p className="text-base text-ink-muted">
+                  Join us to start managing tasks the smart way.
+                </p>
+              </motion.div>
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Name Row (2 columns) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <motion.div {...fadeIn(0.18)}>
+                    <AuthInput
+                      label="First Name"
+                      icon={<User className="w-5 h-5" />}
+                      error={fieldErrors.firstName}
+                      showValid
+                      type="text"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      placeholder="John"
+                      autoComplete="given-name"
+                    />
+                  </motion.div>
+
+                  <motion.div {...fadeIn(0.24)}>
+                    <AuthInput
+                      label="Last Name"
+                      error={fieldErrors.lastName}
+                      showValid
+                      type="text"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      placeholder="Doe"
+                      autoComplete="family-name"
+                    />
+                  </motion.div>
+                </div>
+
+                {/* Email Input */}
+                <motion.div {...fadeIn(0.3)}>
+                  <AuthInput
+                    label="Email address"
+                    icon={<Mail className="w-5 h-5" />}
+                    error={fieldErrors.email}
+                    showValid
+                    type="email"
+                    name="email"
+                    autoComplete="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="you@example.com"
+                  />
+                </motion.div>
+
+                {/* Password Input */}
+                <motion.div {...fadeIn(0.36)}>
+                  <AuthInput
+                    label="Password"
+                    icon={<Lock className="w-5 h-5" />}
+                    error={fieldErrors.password}
+                    showValid
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    autoComplete="new-password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Enter your password"
+                    aria-describedby="password-requirements"
+                    trailing={
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        className="text-ink-subtle hover:text-primary-600 hover:scale-110 active:scale-90 transition-all cursor-pointer"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-5 h-5" aria-hidden="true" />
+                        ) : (
+                          <Eye className="w-5 h-5" aria-hidden="true" />
+                        )}
+                      </button>
+                    }
+                  />
+
+                  {/* Password Strength Meter */}
+                  {formData.password && (
+                    <div className="mt-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div
+                          className="flex-1 h-2 bg-surface-muted rounded-full overflow-hidden"
+                          role="progressbar"
+                          aria-valuenow={passwordStrength.score}
+                          aria-valuemin={0}
+                          aria-valuemax={3}
+                          aria-label="Password strength"
+                        >
+                          <div
+                            className={`h-full ${passwordStrength.color} transition-all duration-300`}
+                            style={{ width: `${(passwordStrength.score / 3) * 100}%` }}
+                          />
+                        </div>
+                        {passwordStrength.label && (
+                          <span className={`text-xs font-medium ${
+                            passwordStrength.score === 1 ? 'text-danger-600' :
+                            passwordStrength.score === 2 ? 'text-warning-700' :
+                            'text-success-600'
+                          }`}>
+                            {passwordStrength.label}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+
+                {/* Password Requirements Checklist — animated check flips */}
+                <motion.div
+                  id="password-requirements"
+                  {...fadeIn(0.42)}
+                  className="space-y-2"
+                >
+                  {passwordRequirements.map((req) => (
+                    <motion.div
+                      key={req.label}
+                      animate={
+                        reduceMotion ? {} : req.met ? { x: [0, 2, 0] } : { x: 0 }
+                      }
+                      transition={{ duration: 0.25 }}
+                      className="flex items-center gap-2"
+                    >
+                      <span
+                        className={`flex items-center justify-center w-5 h-5 rounded-full transition-colors duration-200 ${
+                          req.met ? 'bg-success-100' : 'bg-surface-muted'
+                        }`}
+                        aria-hidden="true"
+                      >
+                        {req.met ? (
+                          <Check className="w-3.5 h-3.5 text-success-600" />
+                        ) : (
+                          <X className="w-3.5 h-3.5 text-ink-subtle" />
+                        )}
+                      </span>
+                      <span className={`text-sm transition-colors duration-200 ${req.met ? 'text-success-700 font-medium' : 'text-ink-subtle'}`}>
+                        {req.label}
+                      </span>
+                    </motion.div>
+                  ))}
+                </motion.div>
+
+                {/* Terms & Conditions */}
+                <motion.div {...fadeIn(0.46)}>
+                  <div className="flex items-start">
+                    <input
+                      id="agreeToTerms"
+                      name="agreeToTerms"
+                      type="checkbox"
+                      checked={formData.agreeToTerms}
+                      onChange={handleChange}
+                      className="h-4 w-4 rounded border-ink-border text-primary-600 focus:ring-primary-600 cursor-pointer accent-primary-600 mt-0.5"
+                    />
+                    <label htmlFor="agreeToTerms" className="ml-2 block text-sm text-ink-muted cursor-pointer">
+                      I agree to the{' '}
+                      <a href="#" className="text-primary-600 hover:text-primary-700 underline underline-offset-2">
+                        Terms & Conditions
+                      </a>
+                      {' '}and{' '}
+                      <a href="#" className="text-primary-600 hover:text-primary-700 underline underline-offset-2">
+                        Privacy Policy
+                      </a>
+                    </label>
+                  </div>
+                  {fieldErrors.agreeToTerms && (
+                    <p className="mt-1.5 text-sm text-danger-600" role="alert">{fieldErrors.agreeToTerms}</p>
+                  )}
+                </motion.div>
+
+                {/* Error Message */}
+                {error && (
+                  <motion.div
+                    initial={reduceMotion ? false : { opacity: 0, x: [0, -6, 6, -4, 4, 0] }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.35 }}
+                    className="bg-danger-50 border border-danger-100 text-danger-700 px-4 py-3 rounded-input text-sm flex items-center gap-2"
+                    role="alert"
+                  >
+                    {error}
+                  </motion.div>
+                )}
+
+                {/* Create Account Button */}
+                <motion.div {...fadeIn(0.5)}>
+                  <GradientButton
+                    type="submit"
+                    disabled={loading || !isFormValid}
+                    className="w-full disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    {loading ? (
+                      <>
+                        <svg
+                          className="animate-spin h-5 w-5"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Creating account...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-5 h-5" aria-hidden="true" />
+                        Create Account
+                      </>
+                    )}
+                  </GradientButton>
+                </motion.div>
+              </form>
+
+              {/* Footer */}
+              <div className="mt-6 text-center">
+                <p className="text-sm text-ink-muted">
+                  Already have an account?{' '}
+                  <Link href="/login" className="font-bold text-primary-600 hover:text-primary-700 transition-colors">
+                    Sign in
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 };

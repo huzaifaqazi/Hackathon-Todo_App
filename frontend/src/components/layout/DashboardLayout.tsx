@@ -7,15 +7,15 @@ import {
   Home,
   CheckSquare,
   MessageSquare,
-  Calendar,
-  Settings,
   LogOut,
   Menu,
   X,
-  Bell,
   Search,
-  User
+  User,
+  ChevronDown,
 } from 'lucide-react';
+import { cn } from '../../lib/utils';
+import { Logo } from '../ui/logo';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -40,10 +40,79 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const isActive = (href: string) => router.pathname === href;
 
+  const userProfile = (compact: boolean) => (
+    <div className="flex items-center gap-3">
+      <div
+        className="bg-gradient-to-br from-primary-600 to-violet-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-subtle"
+        style={{ width: compact ? 40 : 44, height: compact ? 40 : 44 }}
+        aria-hidden="true"
+      >
+        <User className="w-6 h-6 text-white" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-ink truncate">
+          {user?.first_name} {user?.last_name}
+        </p>
+        <p className="text-xs text-ink-subtle truncate">{user?.email}</p>
+      </div>
+    </div>
+  );
+
+  const navItems = (onNavigate?: () => void) => (
+    <nav className="flex-1 px-4 py-6 space-y-1" aria-label="Main navigation">
+      {navigation.map((item) => {
+        const Icon = item.icon;
+        const active = isActive(item.href);
+        return (
+          <Link
+            key={item.name}
+            href={item.href}
+            onClick={onNavigate}
+            aria-current={active ? 'page' : undefined}
+            className={cn(
+              'group relative flex items-center gap-3 px-4 py-2.5 rounded-input text-sm font-semibold transition-all duration-200',
+              active
+                ? 'bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-glow-primary'
+                : 'text-ink-muted hover:bg-primary-50 hover:text-primary-700 hover:translate-x-0.5'
+            )}
+          >
+            <Icon className="w-5 h-5 shrink-0" aria-hidden="true" />
+            {item.name}
+            {/* Hover arrow — slides in from the left */}
+            <span
+              className={cn(
+                'ml-auto w-4 h-4 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200',
+                active ? 'text-white/70' : 'text-primary-400'
+              )}
+              aria-hidden="true"
+            >
+              <svg fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+
+  const logoutButton = (compact: boolean) => (
+    <button
+      onClick={handleLogout}
+      className={cn(
+        'flex items-center gap-3 w-full rounded-input text-sm font-medium text-ink-subtle hover:text-danger-600 hover:bg-danger-50 transition-colors duration-200 cursor-pointer',
+        compact ? 'px-4 py-2.5' : 'px-4 py-3'
+      )}
+    >
+      <LogOut className="w-5 h-5 shrink-0" aria-hidden="true" />
+      Logout
+    </button>
+  );
+
   return (
-    <div className="min-h-screen bg-[#F9FAFB]">
-      {/* Top Navigation Bar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
+    <div className="min-h-screen bg-surface-background">
+      {/* Top Navigation Bar — light glass with subtle blue wash */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/85 backdrop-blur-md shadow-subtle border-b border-primary-100">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Left: Logo and Mobile Menu */}
@@ -51,76 +120,107 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               {/* Mobile menu button */}
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
+                aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
+                aria-expanded={sidebarOpen}
+                className="lg:hidden p-2 rounded-input text-ink-muted hover:text-primary-600 hover:bg-primary-50 transition-colors cursor-pointer"
               >
-                {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {sidebarOpen ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
               </button>
 
               {/* Logo */}
-              <Link href="/dashboard" className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                  <CheckSquare className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-gray-900 hidden sm:block">TodoApp</span>
+              <Link href="/dashboard" className="group flex items-center" aria-label="TodoApp home">
+                <Logo size={32} showWordmark wordmarkClassName="hidden sm:block" />
               </Link>
             </div>
 
-            {/* Center: Search Bar */}
+            {/* Center: Search — routes to tasks page with query */}
             <div className="hidden md:flex flex-1 max-w-md mx-8">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search tasks..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
+              <Link
+                href="/tasks"
+                className="relative w-full group"
+                aria-label="Search tasks"
+              >
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-ink-subtle pointer-events-none" aria-hidden="true" />
+                <div className="w-full pl-10 pr-4 py-2 border border-ink-border rounded-full bg-surface-background text-sm text-ink-subtle group-hover:border-primary-300 group-hover:bg-white group-hover:shadow-subtle transition-all cursor-pointer">
+                  Search tasks...
+                </div>
+              </Link>
             </div>
 
-            {/* Right: Notifications and User */}
+            {/* Right: User Avatar Dropdown */}
             <div className="flex items-center gap-4">
-              {/* Notifications */}
-              <button className="relative p-2 rounded-lg text-gray-600 hover:bg-gray-100">
-                <Bell className="w-6 h-6" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-
-              {/* User Avatar Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-100"
+                  aria-haspopup="menu"
+                  aria-expanded={showUserMenu}
+                  className="flex items-center gap-2 p-1 pr-2 rounded-full hover:bg-primary-50 transition-colors cursor-pointer"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-primary-600 to-violet-600 rounded-full flex items-center justify-center" aria-hidden="true">
                     <User className="w-5 h-5 text-white" />
                   </div>
-                  <span className="hidden sm:block text-sm font-medium text-gray-700">
+                  <span className="hidden sm:block text-sm font-semibold text-ink">
                     {user?.first_name || 'User'}
                   </span>
+                  <ChevronDown className="w-4 h-4 text-ink-subtle" aria-hidden="true" />
                 </button>
 
                 {/* User Dropdown Menu */}
                 <AnimatePresence>
                   {showUserMenu && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2"
-                    >
-                      <Link
-                        href="/settings"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    <>
+                      {/* Click-away backdrop */}
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowUserMenu(false)}
+                        aria-hidden="true"
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.15 }}
+                        role="menu"
+                        className="absolute right-0 mt-2 w-56 bg-white rounded-input shadow-lifted border border-ink-border py-2 z-50"
                       >
-                        Settings
-                      </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                      >
-                        Logout
-                      </button>
-                    </motion.div>
+                        <div className="px-4 py-3 border-b border-ink-border">
+                          <p className="text-sm font-semibold text-ink truncate">
+                            {user?.first_name} {user?.last_name}
+                          </p>
+                          <p className="text-xs text-ink-subtle truncate">{user?.email}</p>
+                        </div>
+                        <div className="py-1">
+                          <Link
+                            href="/tasks"
+                            onClick={() => setShowUserMenu(false)}
+                            role="menuitem"
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-ink-muted hover:bg-surface-muted hover:text-ink transition-colors cursor-pointer"
+                          >
+                            <CheckSquare className="w-4 h-4" aria-hidden="true" />
+                            My Tasks
+                          </Link>
+                          <Link
+                            href="/chat"
+                            onClick={() => setShowUserMenu(false)}
+                            role="menuitem"
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-ink-muted hover:bg-surface-muted hover:text-ink transition-colors cursor-pointer"
+                          >
+                            <MessageSquare className="w-4 h-4" aria-hidden="true" />
+                            AI Chat
+                          </Link>
+                        </div>
+                        <div className="border-t border-ink-border pt-1 mt-1">
+                          <button
+                            onClick={handleLogout}
+                            role="menuitem"
+                            className="w-full flex items-center gap-3 px-4 py-2 text-sm text-danger-600 hover:bg-danger-50 transition-colors text-left cursor-pointer"
+                          >
+                            <LogOut className="w-4 h-4" aria-hidden="true" />
+                            Logout
+                          </button>
+                        </div>
+                      </motion.div>
+                    </>
                   )}
                 </AnimatePresence>
               </div>
@@ -131,55 +231,20 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
       {/* Sidebar and Main Content */}
       <div className="flex pt-16">
-        {/* Left Sidebar - Desktop */}
-        <aside className="hidden lg:flex lg:flex-col lg:w-60 lg:fixed lg:inset-y-0 lg:pt-16 bg-white border-r border-gray-200">
-          <div className="flex flex-col flex-1 overflow-y-auto">
+        {/* Left Sidebar - Desktop — light with a soft blue gradient wash */}
+        <aside className="hidden lg:flex lg:flex-col lg:w-60 lg:fixed lg:inset-y-0 lg:pt-16 bg-gradient-to-b from-primary-50/60 via-white to-white border-r border-ink-border">
+          <div className="flex flex-col flex-1 overflow-y-auto scrollbar-thin">
             {/* User Profile Section */}
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <User className="w-6 h-6 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">
-                    {user?.first_name} {user?.last_name}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-                </div>
-              </div>
+            <div className="p-5 border-b border-ink-border/60">
+              {userProfile(false)}
             </div>
 
             {/* Navigation Items */}
-            <nav className="flex-1 px-4 py-6 space-y-1">
-              {navigation.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.href);
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                      active
-                        ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </nav>
+            {navItems()}
 
             {/* Logout Button */}
-            <div className="p-4 border-t border-gray-200">
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
-              >
-                <LogOut className="w-5 h-5" />
-                Logout
-              </button>
+            <div className="p-4 border-t border-ink-border/60 mt-auto">
+              {logoutButton(false)}
             </div>
           </div>
         </aside>
@@ -194,7 +259,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setSidebarOpen(false)}
-                className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                className="fixed inset-0 bg-ink/40 backdrop-blur-sm z-40 lg:hidden"
+                aria-hidden="true"
               />
 
               {/* Sidebar */}
@@ -202,56 +268,22 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 initial={{ x: -240 }}
                 animate={{ x: 0 }}
                 exit={{ x: -240 }}
-                className="fixed left-0 top-16 bottom-0 w-60 bg-white border-r border-gray-200 z-50 lg:hidden overflow-y-auto"
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                className="fixed left-0 top-16 bottom-0 w-60 bg-white z-50 lg:hidden overflow-y-auto"
+                aria-label="Mobile navigation"
               >
                 <div className="flex flex-col h-full">
                   {/* User Profile Section */}
-                  <div className="p-6 border-b border-gray-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                        <User className="w-6 h-6 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">
-                          {user?.first_name} {user?.last_name}
-                        </p>
-                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-                      </div>
-                    </div>
+                  <div className="p-5 border-b border-ink-border/60">
+                    {userProfile(true)}
                   </div>
 
                   {/* Navigation Items */}
-                  <nav className="flex-1 px-4 py-6 space-y-1">
-                    {navigation.map((item) => {
-                      const Icon = item.icon;
-                      const active = isActive(item.href);
-                      return (
-                        <Link
-                          key={item.name}
-                          href={item.href}
-                          onClick={() => setSidebarOpen(false)}
-                          className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                            active
-                              ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600'
-                              : 'text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          <Icon className="w-5 h-5" />
-                          {item.name}
-                        </Link>
-                      );
-                    })}
-                  </nav>
+                  {navItems(() => setSidebarOpen(false))}
 
                   {/* Logout Button */}
-                  <div className="p-4 border-t border-gray-200">
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                      <LogOut className="w-5 h-5" />
-                      Logout
-                    </button>
+                  <div className="p-4 border-t border-ink-border/60 mt-auto">
+                    {logoutButton(true)}
                   </div>
                 </div>
               </motion.aside>
